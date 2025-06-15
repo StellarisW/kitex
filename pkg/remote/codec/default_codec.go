@@ -144,8 +144,11 @@ func (c *defaultCodec) EncodePayload(ctx context.Context, message remote.Message
 		payloadLen = out.WrittenLen() - headerLen
 		// FIXME: if the `out` buffer using copy to grow when the capacity is not enough, setting the pre-allocated `framedLenField` may not take effect.
 		binary.BigEndian.PutUint32(framedLenField, uint32(payloadLen))
-		b, _ := out.Peek(out.WrittenLen())
-		klog.Infof("thrift encode payload result: %v", b)
+		b, err := out.Bytes()
+		if err != nil {
+			klog.Errorf("get bytes buffer failed: err=%v", err)
+		}
+		klog.Infof("thrift encode payload result: len=%d data=%v", out.WrittenLen(), b)
 	} else if message.ProtocolInfo().CodecType == serviceinfo.Protobuf {
 		return perrors.NewProtocolErrorWithMsg("protobuf just support 'framed' trans proto")
 	}
