@@ -92,7 +92,7 @@ func (t ttHeader) encode(ctx context.Context, message remote.Message, out remote
 	}, out); err != nil {
 		return nil, perrors.NewProtocolError(err)
 	}
-	b, _ := out.Bytes()
+	b, _ := out.Peek(out.WrittenLen())
 	klog.Infof("ttheader encode result: %v", b)
 	return totalLenField, nil
 }
