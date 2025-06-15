@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/cloudwego/kitex/pkg/klog"
 
 	"github.com/cloudwego/gopkg/bufiox"
 	"github.com/cloudwego/gopkg/protocol/thrift"
@@ -185,6 +186,7 @@ func (c thriftCodec) Unmarshal(ctx context.Context, message remote.Message, in r
 	if err != nil {
 		return perrors.NewProtocolErrorWithErrMsg(err, fmt.Sprintf("thrift unmarshal, ReadMessageBegin failed: %s", err.Error()))
 	}
+	klog.Infof("thrift codec: methodName=%s msgType=%v seqID=%d", methodName, msgType, seqID)
 	if err = codec.UpdateMsgType(uint32(msgType), message); err != nil {
 		return err
 	}

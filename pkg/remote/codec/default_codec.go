@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"github.com/cloudwego/kitex/pkg/klog"
 	"sync/atomic"
 
 	"github.com/cloudwego/gopkg/protocol/ttheader"
@@ -202,6 +203,7 @@ func (c *defaultCodec) DecodeMeta(ctx context.Context, message remote.Message, i
 	isTTHeader := IsTTHeader(flagBuf)
 	// 1. decode header
 	if isTTHeader {
+		klog.Infof("is ttheader")
 		// TTHeader
 		if err = ttHeaderCodec.decode(ctx, message, in); err != nil {
 			return err
@@ -215,6 +217,7 @@ func (c *defaultCodec) DecodeMeta(ctx context.Context, message remote.Message, i
 			}
 		}
 	} else if isMeshHeader(flagBuf) {
+		klog.Infof("is mesh header")
 		message.Tags()[remote.MeshHeader] = true
 		// MeshHeader
 		if err = meshHeaderCodec.decode(ctx, message, in); err != nil {
@@ -223,6 +226,8 @@ func (c *defaultCodec) DecodeMeta(ctx context.Context, message remote.Message, i
 		if flagBuf, err = in.Peek(2 * Size32); err != nil {
 			return perrors.NewProtocolErrorWithErrMsg(err, fmt.Sprintf("meshHeader read payload first 8 byte failed: %s", err.Error()))
 		}
+	} else {
+		klog.Infof(" is not ttheader nor mesh header")
 	}
 	return checkPayload(flagBuf, message, in, isTTHeader, c.MaxSize)
 }

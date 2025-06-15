@@ -99,6 +99,7 @@ func (t ttHeader) decode(ctx context.Context, message remote.Message, in remote.
 	if param, err = ttheader.Decode(ctx, in); err != nil {
 		return perrors.NewProtocolError(err)
 	}
+	klog.Infof("ttheader param=%+v", param)
 	setFlags(param.Flags, message)
 	if err = SetOrCheckSeqID(param.SeqID, message); err != nil {
 		klog.Warnf("the seqID in TTHeader check failed, error=%s", err.Error())
