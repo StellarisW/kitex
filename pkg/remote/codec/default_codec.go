@@ -132,6 +132,8 @@ func (c *defaultCodec) EncodePayload(ctx context.Context, message remote.Message
 	if err = c.encodePayload(ctx, message, out); err != nil {
 		return err
 	}
+	b, _ := out.Bytes()
+	klog.Infof("thrift encode payload result: %v", b)
 
 	// 3. fill framed field if needed
 	var payloadLen int
@@ -142,6 +144,8 @@ func (c *defaultCodec) EncodePayload(ctx context.Context, message remote.Message
 		payloadLen = out.WrittenLen() - headerLen
 		// FIXME: if the `out` buffer using copy to grow when the capacity is not enough, setting the pre-allocated `framedLenField` may not take effect.
 		binary.BigEndian.PutUint32(framedLenField, uint32(payloadLen))
+		b, _ := out.Bytes()
+		klog.Infof("thrift encode payload result: %v", b)
 	} else if message.ProtocolInfo().CodecType == serviceinfo.Protobuf {
 		return perrors.NewProtocolErrorWithMsg("protobuf just support 'framed' trans proto")
 	}
@@ -154,6 +158,7 @@ func (c *defaultCodec) EncodePayload(ctx context.Context, message remote.Message
 
 // EncodeMetaAndPayload encode meta and payload
 func (c *defaultCodec) EncodeMetaAndPayload(ctx context.Context, message remote.Message, out remote.ByteBuffer, me remote.MetaEncoder) error {
+	klog.Infof("start encode")
 	tp := message.ProtocolInfo().TransProto
 	if c.PayloadValidator != nil && tp&transport.TTHeader == transport.TTHeader {
 		return c.encodeMetaAndPayloadWithPayloadValidator(ctx, message, out, me)
@@ -259,12 +264,16 @@ func (c *defaultCodec) DecodePayload(ctx context.Context, message remote.Message
 
 // Decode implements the remote.Codec interface, it does complete message decode include header and payload.
 func (c *defaultCodec) Decode(ctx context.Context, message remote.Message, in remote.ByteBuffer) (err error) {
+	b, _ := in.Bytes()
+	klog.Infof("get data: %v", b)
 	// 1. decode meta
+	klog.Infof("start decode meta")
 	if err = c.DecodeMeta(ctx, message, in); err != nil {
 		return err
 	}
 
 	// 2. decode payload
+	klog.Infof("start decode payload")
 	return c.DecodePayload(ctx, message, in)
 }
 
@@ -407,6 +416,7 @@ func checkPayload(flagBuf []byte, message remote.Message, in remote.ByteBuffer, 
 	var transProto transport.Protocol
 	var codecType serviceinfo.PayloadCodec
 	if isThriftBinary(flagBuf) {
+		klog.Infof("payload is thrift binary")
 		codecType = serviceinfo.Thrift
 		if isTTHeader {
 			transProto = transport.TTHeader
@@ -414,6 +424,7 @@ func checkPayload(flagBuf []byte, message remote.Message, in remote.ByteBuffer, 
 			transProto = transport.PurePayload
 		}
 	} else if isThriftFramedBinary(flagBuf) {
+		klog.Infof("payload is thrift framed binary")
 		codecType = serviceinfo.Thrift
 		if isTTHeader {
 			transProto = transport.TTHeaderFramed

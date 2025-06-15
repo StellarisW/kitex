@@ -114,6 +114,7 @@ func (c thriftCodec) Marshal(ctx context.Context, message remote.Message, out re
 	}
 	msgType := message.MessageType()
 	seqID := message.RPCInfo().Invocation().SeqID()
+	klog.Infof("thrift codec marshal: methodName=%s msgType=%v seqID=%d", methodName, msgType, seqID)
 
 	// ???? for fixing resp==nil, err==nil? don't know
 	if err := codec.NewDataIfNeeded(methodName, message); err != nil {
@@ -186,7 +187,7 @@ func (c thriftCodec) Unmarshal(ctx context.Context, message remote.Message, in r
 	if err != nil {
 		return perrors.NewProtocolErrorWithErrMsg(err, fmt.Sprintf("thrift unmarshal, ReadMessageBegin failed: %s", err.Error()))
 	}
-	klog.Infof("thrift codec: methodName=%s msgType=%v seqID=%d", methodName, msgType, seqID)
+	klog.Infof("thrift codec unmarshal: methodName=%s msgType=%v seqID=%d", methodName, msgType, seqID)
 	if err = codec.UpdateMsgType(uint32(msgType), message); err != nil {
 		return err
 	}
